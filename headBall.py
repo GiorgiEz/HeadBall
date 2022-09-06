@@ -1,60 +1,88 @@
 import pygame, sys, time
 
-
-velocityXright = 0
-velocityXleft = 0
-velocityY = 0
-x1 = 0
-x2 = 0
+BGPLAYBUTTON  = pygame.image.load("assets/MenuBG.png")
+BG = pygame.image.load("assets/MenuBGPB.png")
+shootVelocityXright = 0
+shootVelocityXleft = 0
+shootVelocityY = 0
+x1Walls, x2Walls = 0, 0
 pause = False
-BG = pygame.image.load("assets/MenuBG.png")
 p1score, p2score = 0, 0
+
+
+def useAssets(name, size):
+    img = pygame.image.load(f"assets/{name}").convert_alpha()
+    return pygame.transform.rotozoom(img, 0, size)
+
+def renderAssets(screen, img, posX, posY):
+    w, h = img.get_rect().size
+    screen.blit(img, (posX-w/2,posY-h/2))
+
 
 class Player:
     def __init__(self, X, Y):
         self.posX = X
         self.posY = Y
         self.speed = 0
-        
-        self.img = pygame.image.load("assets/p1.gif").convert_alpha()
-        self.img = pygame.transform.rotozoom(self.img, 0, 0.6)
+        self.img = useAssets("p1.gif", 0.6)
 
     def update(self):
+        #Jumping
         self.posY -= self.speed
         if self.posY > 645:
             self.posY = 645
         self.speed -= 1.5
 
     def render(self, screen):
-        w, h = self.img.get_rect().size
-        screen.blit(self.img, (self.posX-w/2,self.posY-h/2))
+        renderAssets(screen, self.img, self.posX, self.posY)
 
 class Player2(Player):
     def __init__(self, X, Y):
         super().__init__(X, Y)
-        self.img = pygame.image.load("assets/p2.gif").convert_alpha()
-        self.img = pygame.transform.rotozoom(self.img, 0, 0.6)
+        self.img = useAssets("p2.gif", 0.6)
+
+
+class Goal1:
+    def __init__(self, X, Y):
+        self.posX = X
+        self.posY = Y
+        self.img = useAssets("goal_1.png", 1)
+
+    def render(self, screen):
+        renderAssets(screen, self.img, self.posX, self.posY)
+
+class Goal2(Goal1):
+    def __init__(self, X, Y):
+        super().__init__(X, Y)
+        self.img = useAssets("goal_2.png", 1)
+
+
+class BackGround:
+    def __init__(self):
+        self.img = useAssets("stadium.jpg", 4)
+
+    def render(self, screen):
+        screen.blit(self.img, (0,0))
 
 
 class Ball:
+    global pause
     def __init__(self, X, Y):
         self.posX = X
         self.posY = Y
         self.velocity = 0.1
         self.acceleration = 0.3
-
-        self.img = pygame.image.load("assets/SoccerBall.png").convert_alpha()
-        self.img = pygame.transform.rotozoom(self.img, 0, 0.4)
+        self.img = useAssets("SoccerBall.png", 0.4)
 
     def update(self):
-        self.velocity += self.acceleration
-        self.posY += self.velocity
-        if self.posY >= 660:
-            self.velocity = -self.velocity
+        if not pause:
+            self.velocity += self.acceleration
+            self.posY += self.velocity
+            if self.posY >= 660:
+                self.velocity = -self.velocity
 
     def render(self, screen):
-        w, h = self.img.get_rect().size
-        screen.blit(self.img, (self.posX-w/2,self.posY-h/2))
+        renderAssets(screen, self.img, self.posX, self.posY)
 
 
 class Button:
@@ -96,49 +124,20 @@ class Menu:
     def get_font(self, size):
         return pygame.font.Font("assets/font.ttf", size)
         
-    def options(self):
-        while True:
-            OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
-
-            self.screen.blit(BG, (0, 0))
-
-            OPTIONS_TEXT = self.get_font(45).render("This is the OPTIONS screen.", True, "Black")
-            OPTIONS_RECT = OPTIONS_TEXT.get_rect(center=(640, 260))
-            self.screen.blit(OPTIONS_TEXT, OPTIONS_RECT)
-
-            OPTIONS_BACK = Button(image=None, pos=(640, 550), 
-                                text_input="BACK", font=self.get_font(75), base_color="Black", hovering_color="Green")
-            OPTIONS_BACK.changeColor(OPTIONS_MOUSE_POS)
-            OPTIONS_BACK.update(self.screen)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):
-                        self.main()
-            pygame.display.update()
-
     def PlayButton(self):
         global pause
         while True:
             MOUSE_POS = pygame.mouse.get_pos()
-            self.screen.blit(BG, (0, 0))
-
+            self.screen.blit(BGPLAYBUTTON, (0, 0))
             BACK = Button(image=None, pos=(640, 560), 
-                                text_input="BACK", font=self.get_font(50), base_color="Black", hovering_color="Green")
-            MULT = Button(image=None, pos=(640, 360), 
-                                text_input="Play Online", font=self.get_font(50), base_color="Black", hovering_color="Green")
-            AI = Button(image=None, pos=(640, 160), 
-                                text_input="Play with an AI", font=self.get_font(50), base_color="Black", hovering_color="Green")
-            FRIEND = Button(image=None, pos=(640, 260), 
-                                text_input="Play with a friend", font=self.get_font(50), base_color="Black", hovering_color="Green")
-
-            for button in [BACK, MULT, AI, FRIEND]:
+                                text_input="BACK", font=self.get_font(50), base_color="orange", hovering_color="Green")
+            AI = Button(image=None, pos=(640, 200), 
+                                text_input="Play with an AI", font=self.get_font(50), base_color="orange", hovering_color="Green")
+            FRIEND = Button(image=None, pos=(640, 350), 
+                                text_input="Play with a friend", font=self.get_font(50), base_color="orange", hovering_color="Green")
+            for button in [BACK, AI, FRIEND]:
                 button.changeColor(MOUSE_POS)
                 button.update(self.screen)
-
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -152,29 +151,21 @@ class Menu:
                     if FRIEND.checkForInput(MOUSE_POS):
                         Friend.run(Friend())
                         pause = False
-                    if MULT.checkForInput(MOUSE_POS):
-                        Game.run(Game())
-                        pause = False
             pygame.display.update()
 
     def main(self):
         while True:
             self.screen.blit(BG, (0, 0))
-
             MENU_MOUSE_POS = pygame.mouse.get_pos()
-
-            MENU_TEXT = self.get_font(100).render("Head Ball", True, "#b68f40")
+            MENU_TEXT = self.get_font(90).render("HeadBall", True, "orange")
             MENU_RECT = MENU_TEXT.get_rect(center=(640, 100))
-
-            PLAY_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 250), 
-                                text_input="PLAY", font=self.get_font(75), base_color="#d7fcd4", hovering_color="White")
-            OPTIONS_BUTTON = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(640, 400), 
-                                text_input="OPTIONS", font=self.get_font(75), base_color="#d7fcd4", hovering_color="White")
-            QUIT_BUTTON = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(640, 550), 
-                                text_input="QUIT", font=self.get_font(75), base_color="#d7fcd4", hovering_color="White")
+            PLAY_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 300), 
+                                text_input="PLAY", font=self.get_font(115), base_color="#d7fcd4", hovering_color="White")
+            QUIT_BUTTON = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(640, 500), 
+                                text_input="QUIT", font=self.get_font(85), base_color="#d7fcd4", hovering_color="White")
 
             self.screen.blit(MENU_TEXT, MENU_RECT)
-            for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON]:
+            for button in [PLAY_BUTTON, QUIT_BUTTON]:
                 button.changeColor(MENU_MOUSE_POS)
                 button.update(self.screen)
             
@@ -185,8 +176,6 @@ class Menu:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
                         self.PlayButton()
-                    if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
-                        self.options()
                     if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
                         pygame.quit()
                         sys.exit()
@@ -201,6 +190,9 @@ class Game:
         self.player = None
         self.ball = None
         self.menu = None
+        self.goal1 = None
+        self.goal2 = None
+        self.background = None
 
     def run(self):
         self.init()
@@ -216,6 +208,9 @@ class Game:
         self.player = Player(150, 645)
         self.ball = Ball(640, 400)
         self.menu = Menu()
+        self.goal1 = Goal1(64, 563)
+        self.goal2 = Goal2(1215, 563)
+        self.background = BackGround()
 
     def update(self):
         self.events()
@@ -227,6 +222,7 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+                self.reset_game()
         keys = pygame.key.get_pressed()
         if not pause:
             if keys[pygame.K_w] or keys[pygame.K_SPACE]:
@@ -238,111 +234,141 @@ class Game:
                 self.player.posX += 5
 
     def render(self):
-        self.screen.fill((50,150,0))
+        self.background.render(self.screen)
         self.player.render(self.screen)
         self.ball.render(self.screen)
+        self.goal1.render(self.screen)
+        self.goal2.render(self.screen)
         self.display_score()
-        self.drawStadium()
+        self.drawLines()
+        self.back_button()
+        self.display_names("Player 1", 10, 690)
+        self.display_names("Player 2", 1185, 690)
         self.clock.tick(60)
 
-    def drawStadium(self):
+    def get_font(self, size):
+        return pygame.font.Font("assets/font.ttf", size)
+
+    def drawLines(self):
         pygame.draw.line(self.screen,(255,255,255),[0, 680],[1280, 680], 5)
-
-        pygame.draw.line(self.screen,(255,255,255),[90, 680],[90, 450], 5)
-        pygame.draw.line(self.screen,(255,255,255),[0, 680],[0, 450], 5)
-        pygame.draw.line(self.screen,(255,255,255),[90, 450],[0, 450], 10)
-
-        pygame.draw.line(self.screen,(255,255,255),[1190, 680],[1190, 450], 5)
-        pygame.draw.line(self.screen,(255,255,255),[1280, 680],[1280, 450], 5)
-        pygame.draw.line(self.screen,(255,255,255),[1280, 450],[1190, 450], 10)
-
-        pygame.draw.line(self.screen,(255,255,255),[90, 0],[90, 450], 5)
-        pygame.draw.line(self.screen,(255,255,255),[1190, 0],[1190, 450], 5)
-
-        pygame.draw.line(self.screen,(255,255,255),[90, 0],[1190, 0], 5)
-
+        pygame.draw.line(self.screen,"grey",[0, 0],[1280, 0], 5)
         pygame.draw.circle(self.screen, (255,255,255), [640, 680], 10)
+        pygame.draw.line(self.screen,"grey",[1153, 0],[1152, 444], 7)
+        pygame.draw.line(self.screen,"grey",[126, 0],[126, 444], 7)
+
+    def back_button(self):
+        self.img = useAssets("Quit Rect.png", 0.34)
+        MOUSE_POS = pygame.mouse.get_pos()
+        BACK = Button(image=self.img, pos=(62, 22), 
+        text_input="BACK", font=self.get_font(28), base_color="grey", hovering_color="Green")
+        BACK.changeColor(MOUSE_POS)
+        BACK.update(self.screen)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if BACK.checkForInput(MOUSE_POS):
+                    self.reset_game()
+                    self.menu.PlayButton()
+
+    def text_on_screen(self, fontName, text, posX, posY, color, size):
+        font = pygame.font.SysFont(fontName, size)
+        message = font.render(text, True, color)
+        self.screen.blit(message, (posX, posY))
+
+    def display_names(self, name, posX, posY):
+        self.text_on_screen("assets/font.ttf", name, posX, posY, "orange", 30)
 
     def display_score(self):
         global p1score, p2score
-        font = pygame.font.SysFont("assets/font.ttf", 80)
-        message = font.render(f"{p1score} - {p2score}", True, (255, 255, 255))
-        self.screen.blit(message, (600, 5))
+        self.text_on_screen("assets/font.ttf", f"{p1score} - {p2score}", 580, 5, "orange", 80)
+        if p1score == 7:
+            self.game_over(1)
+        if p2score == 7:
+            self.game_over(2)
 
-    def reset_ball(self):
-        global velocityXright, velocityXleft, velocityY, x1, x2, pause
-        velocityXleft, velocityXright, velocityY, x1, x2 = 0, 0, 0, 0, 0
+    def game_over(self, plyr):
+        global p1score, p2score, pause
+        self.text_on_screen("assets/font.ttf", f"Player {plyr} won", 360, 200, "orange", 130)
+        pause = True
+
+    def reset_ball_velocity(self, xLeft, xRight, y, x1w, x2w):
+        global shootVelocityXright, shootVelocityXleft, shootVelocityY, x1Walls, x2Walls, pause
+        shootVelocityXleft, shootVelocityXright, shootVelocityY, x1Walls, x2Walls = xLeft, xRight, y, x1w, x2w
 
     def reset_game_after_goal(self):
         global pause
         self.player = Player(150, 645)
         self.player2 = Player2(1130, 645)
+        self.ai = Player2(1130, 645)
         self.ball = Ball(640, 400)
-        self.reset_ball()
+        self.reset_ball_velocity(0,0,0,0,0)
+        self.speed = 0
         pause = False
 
+    def reset_game(self):
+        global p1score, p2score
+        self.reset_game_after_goal()
+        p1score, p2score = 0, 0
+
     def collisionsWithBall(self, plyr):
-        global velocityXright, velocityXleft, velocityY, x1, x2, pause
+        global shootVelocityXright, shootVelocityXleft, shootVelocityY, x1Walls, x2Walls, pause
         if plyr.posX >= 1255:
             plyr.posX = 1255
         if plyr.posX <= 25:
             plyr.posX = 25
+
         #Collisin with ball
-        if plyr.posX - 25 <= self.ball.posX <= plyr.posX and (self.ball.posY-50 <= plyr.posY <= self.ball.posY+70):
-            velocityY = 0.3
-            x2 = 0
-            x1 = 0
-            velocityXleft = 0
-            velocityXright = 13
-        if plyr.posX <= self.ball.posX <= plyr.posX + 25 and (self.ball.posY-50 <= plyr.posY <= self.ball.posY+70):
-            velocityY = 0.3
-            x2 = 0
-            x1 = 0
-            velocityXright = 0
-            velocityXleft = 13
+        if plyr.posX - 30 <= self.ball.posX <= plyr.posX and (self.ball.posY-50 <= plyr.posY <= self.ball.posY+50):
+            if plyr.posY >= 645:
+                self.reset_ball_velocity(0, 8, 0.1, 0, 0)
+            else: self.reset_ball_velocity(0, 14, 0.1, 0, 0)
+
+        if plyr.posX <= self.ball.posX <= plyr.posX + 30 and (self.ball.posY-50 <= plyr.posY <= self.ball.posY+50):
+            if plyr.posY >= 645:
+                self.reset_ball_velocity(8, 0, 0.1, 0, 0)
+            else: self.reset_ball_velocity(14, 0, 0.1, 0, 0)
+
+    def scoring_goal(self):
+        global pause
+        pause = True
+        time.sleep(1)
+        self.reset_game_after_goal()
 
     def collisions(self):
-        global velocityXright, velocityXleft, velocityY, x1, x2, pause, p1score, p2score
-        self.ball.posX -= velocityXright
-        self.ball.posX += velocityXleft
-        self.ball.posY -= velocityY
+        global shootVelocityXright, shootVelocityXleft, shootVelocityY, x1Walls, x2Walls, p1score, p2score
+        self.ball.posX -= shootVelocityXright
+        self.ball.posX += shootVelocityXleft
+        self.ball.posY -= shootVelocityY
 
-        self.ball.posX -= x1
-        self.ball.posX += x2
+        self.ball.posX -= x1Walls
+        self.ball.posX += x2Walls
 
         self.collisionsWithBall(self.player)
         #collision with walls
-        if self.ball.posX >= 1170 and self.ball.posY <= 452:
-            x1 = 7
-            x2 = 0
-            velocityXright = 0
-            velocityXleft = 0
-            velocityY = 0
-        if self.ball.posX <= 120 and self.ball.posY <= 452:
-            x2 = 7
-            x1 = 0
-            velocityXright = 0
-            velocityXleft = 0
-            velocityY = 0
-        if self.ball.posX <= 52 and self.ball.posY >= 452:
-            self.ball.posX = 25
-            self.ball.posY = 660
-            pause = True
+        if self.ball.posX >= 1125 and self.ball.posY <= 452:
+            self.reset_ball_velocity(0, 0, 0, 7, 0)
+
+        if self.ball.posX <= 145 and self.ball.posY <= 452:
+            self.reset_ball_velocity(0, 0, 0, 0, 7)
+
+        if self.ball.posX <= 90 and self.ball.posY >= 452:
+            self.scoring_goal()
             p2score += 1
-            time.sleep(1)
-            self.reset_game_after_goal()
-        if self.ball.posX >= 1220 and self.ball.posY >= 452:
-            self.ball.posX = 1255
-            self.ball.posY = 660
-            pause = True
+
+        if self.ball.posX >= 1190 and self.ball.posY >= 452:
+            self.scoring_goal()
             p1score += 1
-            time.sleep(1)
-            self.reset_game_after_goal()
+
+        if (1180 <= self.ball.posX and 444 <= self.ball.posY <= 460) \
+            or (self.ball.posX <= 100 and 444 <= self.ball.posY <= 460):
+            self.ball.posY += 30
+
         if self.ball.posY <= 25:
             self.ball.posY = 25
         if self.ball.posY >= 665:
             self.ball.posY = 660
-
 
 class Friend(Game):
     def __init__(self):
@@ -378,11 +404,13 @@ class Friend(Game):
         super().collisions()
         self.collisionsWithBall(self.player2)
 
-
 class Ai(Game):
     def __init__(self):
         super().__init__()
         self.ai = None
+        self.velocity = 140
+        self.acceleration = 0.1
+        self.speed = 0
 
     def init(self):
         super().init()
@@ -411,12 +439,25 @@ class Ai(Game):
                     self.ai.posX -= 4.5
                 if self.ai.posX <= self.ball.posX + 20:
                     self.ai.posX += 4.5
+        if self.ai.posY >= 640:
+            self.ai.posY == 640
 
     def jump(self):
-        if self.ball.posX - 10 <= self.ai.posX <= self.ball.posX + 10 and self.ball.posY < self.ai.posY:
-            pass
+        self.ai.posY -= self.speed
+        if self.ai.posY > 645:
+            self.ai.posY = 645
+            delayOnJump = False
+        else: delayOnJump = True
+        self.speed -= 4.5
+
+        if self.ball.posX - 40 <= self.ai.posX <= self.ball.posX + 40 and self.ai.posY >= self.ball.posY \
+        and not delayOnJump and self.ai.posX >= self.ball.posX:
+            if self.ball.posY >= 515:
+                self.speed = 645 - self.ball.posY
+            else: self.speed = 140
 
 
 if __name__ == "__main__":
     app = Menu()
     app.main()
+

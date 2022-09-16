@@ -1,5 +1,6 @@
 import pygame, sys, time
 
+
 BGPLAYBUTTON  = pygame.image.load("assets/MenuBG.png")
 BG = pygame.image.load("assets/MenuBGPB.png")
 shootVelocityXright = 0
@@ -322,12 +323,12 @@ class Game:
         #Collisin with ball
         if plyr.posX - 30 <= self.ball.posX <= plyr.posX and (self.ball.posY-50 <= plyr.posY <= self.ball.posY+50):
             if plyr.posY >= 645:
-                self.reset_ball_velocity(0, 8, 0.1, 0, 0)
-            else: self.reset_ball_velocity(0, 14, 0.1, 0, 0)
+                self.reset_ball_velocity(0, 8, 0.00001, 0, 0)
+            else: self.reset_ball_velocity(0, 14, 0.0001, 0, 0)
 
         if plyr.posX <= self.ball.posX <= plyr.posX + 30 and (self.ball.posY-50 <= plyr.posY <= self.ball.posY+50):
             if plyr.posY >= 645:
-                self.reset_ball_velocity(8, 0, 0.1, 0, 0)
+                self.reset_ball_velocity(8, 0, 0.2, 0, 0)
             else: self.reset_ball_velocity(14, 0, 0.1, 0, 0)
 
     def scoring_goal(self):
@@ -439,6 +440,7 @@ class Ai(Game):
                     self.ai.posX -= 4.5
                 if self.ai.posX <= self.ball.posX + 20:
                     self.ai.posX += 4.5
+            
         if self.ai.posY >= 640:
             self.ai.posY == 640
 
@@ -454,10 +456,10 @@ class Ai(Game):
         and not delayOnJump and self.ai.posX >= self.ball.posX:
             if self.ball.posY >= 515:
                 self.speed = 645 - self.ball.posY
-            else: self.speed = 140
+            else: self.speed = 150
+
 
 
 if __name__ == "__main__":
     app = Menu()
     app.main()
-
